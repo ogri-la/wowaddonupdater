@@ -38,7 +38,7 @@ class Plugin(wowaddon.Plugin):
 
 		if match == None:
 			self.out("Failed to parse download URL for mod %s" % self.id)
-			raise wowadd.ParseError
+			raise wowaddon.ParseError
 		link = match.group(1)
 
 		zname = re.search(r".*/\d*(.*?)\.zip$", link).group(1)
@@ -51,6 +51,7 @@ class Plugin(wowaddon.Plugin):
 		self.newversion = link
 		self.link = link
 		self.zipfilename = zname+".zip"
+		return self.name, self.link, self.zipfilename
 
 	def postcopy(self):
 		ifacedir = os.path.join(self.getoption('wowdir'), "Interface")
@@ -69,13 +70,14 @@ For the argument, goto http://www.curse-gaming.com/mod.php ;  search for the mod
 		except IOError, e:
 			raise wowaddon.DownloadError, e 
 
-		comped = re.compile("<a href=\"[./]*ui.php\?id=(\d+)\">(.*?)</a>", re.I & re.S)
+		datere = re.compile("(\d+/\d+/\d+)")
+		comped = re.compile("(?is)<a href=\"[./]*ui.php\?id=(\d+)\">(.*?)</a>(.*?)</tr>")
 	
 		match = comped.search(data, 0)
 		while match != None: 
-			id = match.group(1) 
-			name = match.group(2) 
-			ret.append( (id, name) ) 
+			(id, name, rest) = match.groups() 
+			date = datere.search(rest).group(1)
+			ret.append( (id, name + " -- " + date) ) 
 			match = comped.search(data, match.end() )
 		
 		return ret
@@ -94,4 +96,12 @@ For the argument, goto http://www.curse-gaming.com/mod.php ;  search for the mod
 	search = staticmethod(search)
 
 wowaddon.addModType("UI.WorldofWar.Net", Plugin);
+
+
+if __name__ == "__main__":
+        list = Plugin.search('sw stats')
+        print list
+        p = Plugin(None, [ list[0][0] ] )
+        print p.getinfo()
+
 
