@@ -19,57 +19,62 @@ class Plugin(wowaddon.Plugin):
 		wowaddon.Plugin.__init__(self, updater, args)
 		if (id == ""):
 			raise "Need id"
-		self.id = args[0]
+		(self.id, self.dname) = args[0].split('/', 1)
+		print (self.id, self.dname)
 		self.type = "Curse"
 
 	def getinfo(self):
 		if self.timemutex(60):
 			return
 		
-		id = self.id
-		self.out("Checking mod %s" % id)
+
+		self.out("Checking mod %s:%s" % (self.id, self.dname))
 		try:
-			data = urllib.urlopen("http://www.curse-gaming.com/en/" + str(id)).read()
+			data = urllib.urlopen("http://www.curse-gaming.com/en/files/details/" + self.id + "/" + self.dname  + "/" ).read()
 			name = re.compile("<h1>(.*?)</h1>").search(data).group(1)
 		except IOError:
 			raise wowaddon.DownloadError
 
-		matches = re.compile("<a href=\"(download-(\d+).html)\">").findall(data, re.I and re.S)
-		self.out(str(matches))
-		if matches == None:
+		#matches = re.compile("<a href=\"(/../files/downloads/(\d+)/)\"").findall(data, re.I and re.S)
+		matches = re.compile("<a href=\"(/../files/downloads/(\d+)/)\"[^>]+>([^<]+)<").findall(data, re.I and re.S)
+		#self.out(str(matches))
+		if matches == None or matches == []:
+			self.out("No files found to dwnload: %s" % self.id)
 			raise wowaddon.ParseError
 			
 		bestid = -1
 		bestlink = ""
+		bestvername = ""
 		for m in matches:
-			link,downid = m
-			if(downid > bestlink):
+			link, downid, vername = m
+			downid = int(downid)
+			if downid > bestid:
 				bestid = downid
 				bestlink = link
-			self.out(link + " " + downid)
-			#print link, downid
+				bestvername = vername
 		
 		if bestid < 1: 
-			self.out("Failed to parse download URL for mod CURSE:%s" % id)
+			self.out("Failed to parse download URL for mod CURSE:%s:%s" % (self.id, self.dname) )
 			raise wowaddon.ParseError
-		
-		dlpagelink = "http://www.curse-gaming.com/en/wow/download-" + str(bestid) + ".html"
+	
+		dlpagelink = "http://wow.curse-gaming.com" + bestlink
+
 		try:
 			dlpage = urllib.urlopen(dlpagelink).read()
 		except IOError:
 			raise wowaddon.DownloadError("Couldn't get dlpage")
 		
-		matches = re.search("(?ism)<thead>.*?Links.*?</thead>.*?<tbody>.*?<a\s+href=\"(.*?)\">.*?</tbody>" , dlpage)
+		matches = re.search("(?ism)<li class=\"auto\"><a\s+href=\"(.*?)\">" , dlpage)
 
 		if matches == None:
 			raise wowaddon.ParseError
 
 		link = matches.group(1)
-		self.name = wowaddon.cleanuphtml(name)
+		self.name = wowaddon.cleanuphtml(name) + " " + wowaddon.cleanuphtml(bestvername)
 		self.link = link
 		self.newversion = bestid
-		self.zipfilename = re.sub('[^A-Za-z0-9_]', '', self.name.strip().replace(' ', '_')) + ".zip"
-		#print self.zipfilename 
+		self.zipfilename = re.sub('[^-_a-zA-Z0-9]', '', self.name.strip().replace(' ', '_')) + ".zip"
+		return self.link, self.newversion, self.zipfilename
 
 	def postcopy(self):
 		ifacedir = os.path.join(self.getoption('wowdir'), "Interface")
@@ -77,35 +82,43 @@ class Plugin(wowaddon.Plugin):
 
 
 	def help():
-                return """
-For the argument, goto http://ui.worldofwar.net/ ;  search for the mod you want and click on the link for it.  The address should be something like \"http://ui.worldofwar.net/ui.php?id=120\".  Where the number at the end is the mod id, for the mod you want.
-"""
+                return ""
 
 	def search(text):
 		ret = []
 		textq = urllib.quote_plus(text)
-		post = urllib.urlencode({ "searchtext" : text,
-					  "type"       : "wow",
-					  "submit"     : "Search" })
+		post = urllib.urlencode({ "q"		: text,
+					  "q_labels"	: "1",
+					  "cat"		: "1" })
 		try:
-			data = urllib.urlopen("http://www.curse-gaming.com/en/search.html" , post).read()
+			data = urllib.urlopen("http://wow.curse-gaming.com/en/files/search/?" + post).read()
 		except IOError:
 			raise wowaddon.DownloadError
-
-		comped = re.compile("<a href=\"(wow/addons-[^\"]+)\">(.*?)</td>", re.I & re.S)
+		
+		datere = re.compile("(\d+/\d+/\d+)");
+		comped = re.compile("(?is)span><a href=\"/../files/details/(\d+/[^\"]+)/\"[^>]+>(.*?)</tr>")
 	
 		match = comped.search(data, 0)
+
 		while match != None:
 			id = match.group(1)
-			name = match.group(2) 
-			delim = "</a><br />"
-			if name.find(delim) > -1:
-				(name, desc) = name.split(delim, 1);
-				name = name + " -- " + desc
+			rest = match.group(2) 
+			
+			name = ""
+			date = ""
+			delim = "</a>"
+			if rest.find(delim) > -1:
+				(name, rest) = rest.split(delim, 1);
+				name = name
 			else:
-				name = name[:name.find("</a>")]
+				raise wowaddon.ParseError
+			try: 
+				date = datere.search(rest).group(1)
+			except AttributeError:
+				raise wowaddon.ParseError
+				
 			name = wowaddon.cleanuphtml(name)
-			ret.append( (id, name) )
+			ret.append( (id, name + " -- " + date) )
 			match = comped.search(data, match.end() )
 
 		return ret
@@ -125,5 +138,11 @@ For the argument, goto http://ui.worldofwar.net/ ;  search for the mod you want 
 
 wowaddon.addModType("Curse Gaming", Plugin)
 
+
+if __name__ == "__main__":
+	list = Plugin.search('damagemeter')
+	print list
+	p = Plugin(None, [ list[0][0] ] )
+	print p.getinfo()
 
 

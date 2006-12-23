@@ -335,13 +335,22 @@ class Plugin:
 		return self.updater.setoption(name, value)
 		
 	def log(self, str):
-		self.updater.log(str)
+		if self.updater != None:
+			self.updater.log(str)
+		else:	
+			print "LOG:", str
 
 	def out(self, str, nolog = 0):
-		self.updater.out(str, nolog)
+		if self.updater != None:
+			self.updater.out(str, nolog)
+		else:	
+			print "LOG:", str
 
 	def out2(self, str):
-		self.updater.out2(str)
+		if self.updater != None:
+			self.updater.out2(str)
+		else:	
+			print "LOG:", str
 
 	def __getstate__(self):
 		odict = self.__dict__.copy() # copy the dict since we change it
