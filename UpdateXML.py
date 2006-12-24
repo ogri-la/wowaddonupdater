@@ -16,17 +16,18 @@ from xml.dom.minidom import parse, parseString
 from xml.dom import minidom, Node
 
 def readFileNode(file):
-	
-	ret = { 'source': None, 'dir': None, 'name': None, 'md5': None }
+	ret = { 'source': None, 'dir': None, 'name': None, 'md5': None, 'version' : -1 }
 	for node in  file.childNodes:
-		if node.nodeType == Node.ELEMENT_NODE:
-			if node.nodeName == "source" or node.nodeName == "dir" or node.nodeName == "name" or node.nodeName == "md5":
-				if node.childNodes == []:
-					continue
-				if node.childNodes[0].nodeType == Node.TEXT_NODE:
-					ret[node.nodeName] = node.childNodes[0].nodeValue
+		if node.nodeType == Node.ELEMENT_NODE and node.nodeName in ret.keys():
+			if node.childNodes == []:
+				continue
+			if node.childNodes[0].nodeType == Node.TEXT_NODE:
+				ret[node.nodeName] = node.childNodes[0].nodeValue
+				if node.nodeName == 'version':
+					ret[node.nodeName] = float( ret[node.nodeName] )
 	return ret
-	
+
+
 def walkNodes(doc):
 	ret = {}
 	listFiles = doc.getElementsByTagName('files')
@@ -61,16 +62,17 @@ def parseString(fn):
 
 
 if __name__ == '__main__':
-	s ="""
+	s ='''
 <files>
   <file>
     <dir></dir>
     <name>test.py</name>
     <source>http://nowhere.com/test.py</source>
     <md5>blahbalh</md5>
+    <version>1.1</version>
   </file>
 </files>
-"""
+'''
 	if len(sys.argv) > 1:
 		print parse(sys.argv[1])
 	else:

@@ -21,7 +21,7 @@ if platform.system() == "Darwin":
 		'iconfile' : 'updater_gui.icns', 
 		}
 
-	tgt = { 'script' : "updater_gui.py",
+	tgt = { 'script' : "MetaUpdater.py", #updater_gui.py",
 		'name' : 'WoW AddOn Updater', 
 		#'icon_resources' : [ ( 0, "updater_gui.icns") ] ,
 		'dest_base' : "WoW AddOn Updater", }

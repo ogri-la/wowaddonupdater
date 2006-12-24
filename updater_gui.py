@@ -16,6 +16,7 @@ from wxPython.wx import *
 import wx.gizmos
 import UpdaterWizard
 import updater
+
 EVT_RESULT_ID = wxNewId()
 
 def EVT_RESULT(win, func):
@@ -23,7 +24,6 @@ def EVT_RESULT(win, func):
 
 class ResultEvent(wxPyEvent):
 	"""Simple event to carry arbitrary result data"""
-
 	def __init__(self, data):
 		wxPyEvent.__init__(self)
 		self.SetEventType(EVT_RESULT_ID)

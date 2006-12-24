@@ -398,10 +398,31 @@ def copytree(src, dst, symlinks=0):
 
 def unzip( path, outpath ):
 	files = []
-	# Create a ZipFile Object Instance
 	if not os.path.exists(outpath):
 			os.makedirs(outpath)
+		
+	if isRarFile(path):
+		output = os.popen("unrar vb " + path).read()
+		if(output[0] == "[") :
+			#print "Sorry no dice with " + path
+			raise UnzipError
+
+		lines = re.split(r"[\r\n]+", output)
+		for l in lines:
+			if  l != '':
+				files.append(l)
+
+		os.popen("unrar x " + path + " "+ outpath)
+		for i in range(len(files)):
+			files[i] = files[i].replace('/', os.sep).lstrip(os.sep)
+		return files
+	
 			
+	#Only continue this if it could possibly be a zipfile
+	if not isZipFile(path):
+		return []
+
+	#if it's not going to work with the inhome libs use the exev
 	if(not zipfile.is_zipfile(path) ):
 		output = os.popen("unzip -qq -l " + path).read()
 		if(output[0] == "[") :
@@ -413,8 +434,6 @@ def unzip( path, outpath ):
 			lst = re.split(r"\s+", l.strip(), 3)
 			if (len(lst) > 3):
 				files.append(lst[3])
-				#print lst
-		#print "zipfile nokay trying to use external program"
 		os.popen("unzip -qq -d " + outpath + " "+ path)
 		for i in range(len(files)):
 			files[i] = files[i].replace('/', os.sep).lstrip(os.sep)
@@ -431,10 +450,8 @@ def unzip( path, outpath ):
 
 		outname = os.path.join(outpath, outname.lstrip(os.sep))
 		
-
-		isdir=((info.external_attr & 0xff) & 0x10)
+		isdir = ((info.external_attr & 0xff) & 0x10)
 		
-		#print name, info.external_attr, info.internal_attr, info.flag_bits,  info.external_attr & 0x10
 		if name[-1] == '/' or isdir != 0:
 			if not os.path.exists(outname):
 				os.makedirs(outname)
@@ -458,7 +475,6 @@ def unzip( path, outpath ):
 		
 	archive.close()
 	return files
-	#print "\""+path+"\" was unzipped successfully."
 
 def hashfile(file):
 	f = open(file, "rb")
@@ -503,4 +519,16 @@ def nopatch(ifacedir, outfiles):
 			open(file, "w")
 			#print file, f
 			outfiles.append(os.path.join(f, "nopatch"))
+
+def isZipFile(file):
+	f = open(file)
+	magic = f.read(4)
+	f.close()
+	return magic == "PK\003\004"
+
+def isRarFile(file):
+	f = open(file)
+	magic = f.read(5)
+	f.close()
+	return magic == "Rar!\x1a"
 
