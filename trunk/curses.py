@@ -20,7 +20,7 @@ class Plugin(wowaddon.Plugin):
 		if (id == ""):
 			raise "Need id"
 		(self.id, self.dname) = args[0].split('/', 1)
-		print (self.id, self.dname)
+		#print (self.id, self.dname)
 		self.type = "Curse"
 
 	def getinfo(self):

@@ -30,6 +30,7 @@ import cosmos
 import ctmod 
 import local
 import remote
+import wowinterface
 
 from wowaddon import ParseError, DownloadError
 

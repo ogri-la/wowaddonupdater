@@ -59,7 +59,6 @@ class Plugin(wowaddon.Plugin):
 
 	def help():
 		return """
-For the argument, goto http://www.curse-gaming.com/mod.php ;  search for the mod you want and click on the link for it.  The address should be something like \"http://www.curse-gaming.com/mod.php?addid=694\".  Where the number at the end is the mod id, for the mod you want.
 """
 
 	def search(text):
