@@ -24,13 +24,16 @@ import pickle
 # AddOn Plugins
 ################################
 import wowaddon
-import uiwownet
-import curses
+
+import aceaddons
 import cosmos
+import curses
 import ctmod 
+import nurfedui
+import uiwownet
+import wowinterface
 import local
 import remote
-import wowinterface
 
 from wowaddon import ParseError, DownloadError
 
@@ -64,7 +67,12 @@ class Updater:
 		self.confpkl = "config.pkl"
 		self.filepkl = "files.pkl"
 		if(platform.system() == "Windows"):
-			self.defaults['wowdir'] = r"C:\Program Files\World of Warcraft"
+			wdir = r"C:\Program Files\World of Warcraft"
+			wdir64 = r"C:\Program Files (x86)\World of Warcraft"
+			if os.path.exists(wdir64):
+				self.defaults['wowdir'] = wdir64
+			else:
+				self.defaults['wowdir'] = wdir
 		elif(platform.system() == "Darwin"):
 			self.defaults['wowdir'] = "/Applications/World of Warcraft"
 			#Work in the .app dir

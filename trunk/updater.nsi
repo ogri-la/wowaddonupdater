@@ -30,6 +30,7 @@ Section "Install"
   File "dist\python24.dll" 
   File "dist\library.zip" 
   File "dist\unzip.exe" 
+  File "dist\unrar.exe" 
   File "dist\updater.ico" 
   File "dist\MSVCR71.dll" 
  

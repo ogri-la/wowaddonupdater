@@ -24,8 +24,8 @@ class Plugin(wowaddon.Plugin):
 		self.type = "Curse"
 
 	def getinfo(self):
-		if self.timemutex(60):
-			return
+		#if self.timemutex(60):
+		#	return
 		
 
 		self.out("Checking mod %s:%s" % (self.id, self.dname))
