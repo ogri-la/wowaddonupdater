@@ -50,6 +50,6 @@ elif platform.system() == "Windows":
 		#excludes = ["pywin", "pywin.debugger", "pywin.debugger.dbgcon",
 		#    "pywin.dialogs", "pywin.dialogs.list",
 		#    "Tkconstants","Tkinter","tcl" ],
-		data_files=[(".",
-		            ["unzip.exe", "updater.ico"])],
+		data_files=[(".", 
+		            ["unzip.exe", "unrar.exe", "updater.ico"])],
 	)

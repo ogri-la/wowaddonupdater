@@ -12,104 +12,104 @@ __license__   = "GPL Version 2"
 import sys 
 import platform
 import threading
-from wxPython.wx import *
+import wx
 import wx.gizmos
 import UpdaterWizard
 import updater
 
-EVT_RESULT_ID = wxNewId()
+EVT_RESULT_ID = wx.NewId()
 
 def EVT_RESULT(win, func):
 	win.Connect(-1, -1, EVT_RESULT_ID, func)
 
-class ResultEvent(wxPyEvent):
+class ResultEvent(wx.PyEvent):
 	"""Simple event to carry arbitrary result data"""
 	def __init__(self, data):
-		wxPyEvent.__init__(self)
+		wx.PyEvent.__init__(self)
 		self.SetEventType(EVT_RESULT_ID)
 		self.data = data
 
-class UpdaterApp(wxApp, updater.Updater):
+class UpdaterApp(wx.App, updater.Updater):
 	def OnInit(self):
 		updater.Updater.__init__(self)
-		self.main = UpdaterFrame(self, NULL, -1, "WoW AddOn Updater")
-		self.main.Show(true)
+		self.main = UpdaterFrame(self, None, -1, "WoW AddOn Updater")
+		self.main.Show(True)
 		return True
 
 	def error(self, str):
 		updater.Updater.error(self, str)
-		wxPostEvent(self.main,ResultEvent([4, str]))
+		wx.PostEvent(self.main,ResultEvent([4, str]))
 
 	def out2(self, str):
 		updater.Updater.out2(self, str)
-		wxPostEvent(self.main,ResultEvent([2, str]))
+		wx.PostEvent(self.main,ResultEvent([2, str]))
 
 	def out(self, str, nolog = 0): 
 		updater.Updater.out(self, str, nolog)
-		wxPostEvent(self.main,ResultEvent([1, str]))
+		wx.PostEvent(self.main,ResultEvent([1, str]))
 
 	def gauge(self, i, max):
 		updater.Updater.gauge(self, i, max)
-		wxPostEvent(self.main,ResultEvent([3, i*100/max]))
+		wx.PostEvent(self.main,ResultEvent([3, i*100/max]))
 
 
-class UpdaterFrame(wxFrame):
+class UpdaterFrame(wx.Frame):
 	def __init__(self, app, parent, ID, title):
-		wxFrame.__init__(self, parent, ID, title, size=(600,-1))
-		panel = wxPanel(self, -1)
+		wx.Frame.__init__(self, parent, ID, title, size=(600,-1))
+		panel = wx.Panel(self, -1)
 		self.app = app
 		self.count = 0
 		self.icon = None
 		# XXX see about integrating this into our app or a resource file
 		try:            # - don't sweat it if it doesn't load
 			if platform.system() != "Darwin":
-				self.icon = wxIcon("updater.ico", wxBITMAP_TYPE_ICO)
+				self.icon = wx.Icon("updater.ico", wx.BITMAP_TYPE_ICO)
 				self.SetIcon(self.icon)
 		finally: 
 			pass
 
 
-		mainbox = wxBoxSizer(wxVERTICAL)
-		btnbox = wxBoxSizer(wxHORIZONTAL)
-		textbox = wxBoxSizer(wxHORIZONTAL)
+		mainbox = wx.BoxSizer(wx.VERTICAL)
+		btnbox = wx.BoxSizer(wx.HORIZONTAL)
+		textbox = wx.BoxSizer(wx.HORIZONTAL)
 
 
 		#menubar stuff
-		menubar = wxMenuBar()
-		filemenu = wxMenu()
-		helpmenu = wxMenu()
+		menubar = wx.MenuBar()
+		filemenu = wx.Menu()
+		helpmenu = wx.Menu()
 
 		logitm = filemenu.Append(-1,'L&og','Review the Log')
 		exititm = filemenu.Append(-1,'E&xit','Terminate the program') 
-		aboutitm = helpmenu.Append(wxID_ABOUT, '&About', 'About this program')
+		aboutitm = helpmenu.Append(wx.ID_ABOUT, '&About', 'About this program')
 		helpitm = helpmenu.Append(-1,'Set the Preferences', '')
 
 		self.Bind(wx.EVT_MENU, self.OnLog, logitm)
 		self.Bind(wx.EVT_MENU, self.OnAbout, aboutitm)
 		self.Bind(wx.EVT_MENU, self.OnExit, exititm)
 		if "__WXMAC__" in wx.PlatformInfo:
-			wxApp.SetMacExitMenuItemId(exititm.GetId())
+			wx.App.SetMacExitMenuItemId(exititm.GetId())
 		menubar.Append(filemenu,'&File')
  		menubar.Append(helpmenu,'&Help')
 		self.SetMenuBar(menubar)
 
 		#other stuff
-		self.gauge = wxGauge(panel, -1, 100, size=(300, 25))
-		self.startbtn = wxButton(panel, wxID_OK)
-		self.prefbtn = wxButton(panel, -1, "Preferences") #wxID_STOP)
-		self.text = wxStaticText(panel, -1, "Press OK to begin")
+		self.gauge = wx.Gauge(panel, -1, 100, size=(300, 25))
+		self.startbtn = wx.Button(panel, wx.ID_OK)
+		self.prefbtn = wx.Button(panel, -1, "Preferences") #wx.ID_STOP)
+		self.text = wx.StaticText(panel, -1, "Press OK to begin")
 
-		self.Bind(EVT_BUTTON, self.OnOk, self.startbtn)
-		self.Bind(EVT_BUTTON, self.OnPref, self.prefbtn)
+		self.Bind(wx.EVT_BUTTON, self.OnOk, self.startbtn)
+		self.Bind(wx.EVT_BUTTON, self.OnPref, self.prefbtn)
 
-		btnbox.Add(self.startbtn, 1, wxRIGHT, 10)
+		btnbox.Add(self.startbtn, 1, wx.RIGHT, 10)
 		btnbox.Add(self.prefbtn, 1)
 		textbox.Add(self.text, 1)
 		mainbox.Add((0, 50), 0)
-		mainbox.Add(self.gauge, 0, wxALIGN_CENTRE)
+		mainbox.Add(self.gauge, 0, wx.ALIGN_CENTRE)
 		mainbox.Add((0, 30), 0)
-		mainbox.Add(btnbox, 1, wxALIGN_CENTRE)
-		mainbox.Add(textbox, 1, wxALIGN_CENTRE)
+		mainbox.Add(btnbox, 1, wx.ALIGN_CENTRE)
+		mainbox.Add(textbox, 1, wx.ALIGN_CENTRE)
 
 		panel.SetSizer(mainbox)
 		self.statusbar = self.CreateStatusBar()
@@ -129,7 +129,7 @@ class UpdaterFrame(wxFrame):
 		elif event.data[0] == 3:
 			self.gauge.SetValue(event.data[1])
 		elif event.data[0] == 4: 
-			wxMessageDialog(self, event.data[1], "Error", style=wxICON_ERROR).ShowModal()
+			wx.MessageDialog(self, event.data[1], "Error", style=wx.ICON_ERROR).ShowModal()
 
 	def OnLog(self, event):
 		if self.logframe == None:
@@ -172,38 +172,38 @@ class UpdaterFrame(wxFrame):
 
 
 class PrefFrame(wx.Dialog):
-	def __init__(self, app, parent, ID = -1, title = "Updater Preferences",  style=wxDEFAULT_FRAME_STYLE):
+	def __init__(self, app, parent, ID = -1, title = "Updater Preferences",  style=wx.DEFAULT_FRAME_STYLE):
 		wx.Dialog.__init__(self, parent, -1, title, size=(600, -1) )
-		#wxFrame.__init__(self, parent, ID, title, size=(600,-1))
-		panel = wxPanel(self, -1)
+		#wx.Frame.__init__(self, parent, ID, title, size=(600,-1))
+		panel = wx.Panel(self, -1)
 		
 		#self.Show(True)
 		#panel.Show(True)
 		self.app = app
 		self.count = 0
 			
-		self.Bind(EVT_CLOSE, self.OnExit)
+		self.Bind(wx.EVT_CLOSE, self.OnExit)
 
 		#first background controls like staticboxes
-		mainbox = wxBoxSizer(wxVERTICAL)
+		mainbox = wx.BoxSizer(wx.VERTICAL)
 
-		naddmodbox = wxStaticBoxSizer(
-			wxStaticBox(panel, -1, "Add Mod"), wxVERTICAL)
-		noptionbox = wxStaticBoxSizer(
-			wxStaticBox(panel, -1, "General Options"), wxVERTICAL)
-		ncurmodbox = wxStaticBoxSizer(
-			wxStaticBox(panel, -1, "Current Mods"), wxVERTICAL)
+		naddmodbox = wx.StaticBoxSizer(
+			wx.StaticBox(panel, -1, "Add Mod"), wx.VERTICAL)
+		noptionbox = wx.StaticBoxSizer(
+			wx.StaticBox(panel, -1, "General Options"), wx.VERTICAL)
+		ncurmodbox = wx.StaticBoxSizer(
+			wx.StaticBox(panel, -1, "Current Mods"), wx.VERTICAL)
 		
 		#create controls 
- 		self.wowdirctrl = wxTextCtrl(panel)
- 		self.wowdirbtn = wxButton(panel, -1, "Browse")
- 		self.wowdirdia = wxDirDialog(panel, "WoW Directory")
- 		#self.newmoddia = wxFileDialog(panel, "WoW Directory")
+ 		self.wowdirctrl = wx.TextCtrl(panel)
+ 		self.wowdirbtn = wx.Button(panel, -1, "Browse")
+ 		self.wowdirdia = wx.DirDialog(panel, "WoW Directory")
+ 		#self.newmoddia = wx.FileDialog(panel, "WoW Directory")
 
- 		self.newmodtype = wxChoice(panel, choices=self.app.getModTypes())
- 		#self.newmodbrs = wxButton(panel, -1, "Browse")
- 		#self.newmodarg = wxTextCtrl(panel)
- 		self.newmodbtn = wxButton(panel, -1, "Add Mod")
+ 		self.newmodtype = wx.Choice(panel, choices=self.app.getModTypes())
+ 		#self.newmodbrs = wx.Button(panel, -1, "Browse")
+ 		#self.newmodarg = wx.TextCtrl(panel)
+ 		self.newmodbtn = wx.Button(panel, -1, "Add Mod")
 
  		self.modlbox = wx.gizmos.EditableListBox(panel, style=wx.gizmos.EL_ALLOW_DELETE)
  		self.modsctrl = self.modlbox.GetListCtrl()
@@ -211,69 +211,69 @@ class PrefFrame(wx.Dialog):
 		self.dnbtn  = self.modlbox.GetDownButton()
 		self.upbtn  = self.modlbox.GetUpButton()
 		
-		self.helpbtn = wxButton(panel, -1, "Help")
-		self.okbtn = wxButton(panel, -1, "OK")
+		self.helpbtn = wx.Button(panel, -1, "Help")
+		self.okbtn = wx.Button(panel, -1, "OK")
 
-		self.cleanbtn = wxButton(panel, -1, "Cleanup Files")
+		self.cleanbtn = wx.Button(panel, -1, "Cleanup Files")
 
 
 		#BIND buttons
-		self.upbtn.Bind(EVT_BUTTON, self.OnUp)
-		self.dnbtn.Bind(EVT_BUTTON, self.OnDown)
-		self.delbtn.Bind(EVT_BUTTON, self.OnDel)
-		self.helpbtn.Bind(EVT_BUTTON, self.OnHelp)
-		self.okbtn.Bind(EVT_BUTTON, self.OnClose)
-		self.cleanbtn.Bind(EVT_BUTTON, self.OnClean)
-		self.wowdirbtn.Bind(EVT_BUTTON, self.OnBrowse)
-		self.newmodbtn.Bind(EVT_BUTTON, self.OnAdd)
-		#self.newmodbrs.Bind(EVT_BUTTON, self.OnBrowseArg)
+		self.upbtn.Bind(wx.EVT_BUTTON, self.OnUp)
+		self.dnbtn.Bind(wx.EVT_BUTTON, self.OnDown)
+		self.delbtn.Bind(wx.EVT_BUTTON, self.OnDel)
+		self.helpbtn.Bind(wx.EVT_BUTTON, self.OnHelp)
+		self.okbtn.Bind(wx.EVT_BUTTON, self.OnClose)
+		self.cleanbtn.Bind(wx.EVT_BUTTON, self.OnClean)
+		self.wowdirbtn.Bind(wx.EVT_BUTTON, self.OnBrowse)
+		self.newmodbtn.Bind(wx.EVT_BUTTON, self.OnAdd)
+		#self.newmodbrs.Bind(wx.EVT_BUTTON, self.OnBrowseArg)
 		
 
 		#option box
-		optionbox = wxFlexGridSizer(cols=2, vgap=8, hgap=8)
-		noptionbox.Add(optionbox, 1, wxGROW)
-		noptionbox.Add(self.cleanbtn, 1, wxALIGN_CENTER|wxALL,5)
+		optionbox = wx.FlexGridSizer(cols=2, vgap=8, hgap=8)
+		noptionbox.Add(optionbox, 1, wx.GROW)
+		noptionbox.Add(self.cleanbtn, 1, wx.ALIGN_CENTER|wx.ALL,5)
 
 		optionbox.AddGrowableCol(1, 1)
-		optionbox.SetFlexibleDirection(wxHORIZONTAL)
-		wowdirbox = wxBoxSizer(wxHORIZONTAL)
-		wowdirbox.Add(self.wowdirctrl, 1, wxRIGHT|wxGROW|wxEXPAND, 10)
-		wowdirbox.Add(self.wowdirbtn, 0, wxALIGN_RIGHT)
+		optionbox.SetFlexibleDirection(wx.HORIZONTAL)
+		wowdirbox = wx.BoxSizer(wx.HORIZONTAL)
+		wowdirbox.Add(self.wowdirctrl, 1, wx.RIGHT|wx.GROW|wx.EXPAND, 10)
+		wowdirbox.Add(self.wowdirbtn, 0, wx.ALIGN_RIGHT)
 		def addoption(label, ctrl):
-			optionbox.Add( wxStaticText(panel, -1, label), 0)
-			optionbox.Add( ctrl, 1, wxGROW )
+			optionbox.Add( wx.StaticText(panel, -1, label), 0)
+			optionbox.Add( ctrl, 1, wx.GROW )
 
 		addoption("WoW Directory", wowdirbox)
 
 		#add wow mod
-		addmodbox = wxFlexGridSizer(cols=3, vgap=8, hgap=8)
-		addmodbox.Add( wxStaticText(panel, -1, "Source:") )
+		addmodbox = wx.FlexGridSizer(cols=3, vgap=8, hgap=8)
+		addmodbox.Add( wx.StaticText(panel, -1, "Source:") )
 		addmodbox.Add( self.newmodtype )
 		addmodbox.Add( self.newmodbtn)
-		#addmodbox.Add( self.newmodarg, 1, wxGROW|wxEXPAND)
+		#addmodbox.Add( self.newmodarg, 1, wx.GROW|wx.EXPAND)
 		#addmodbox.Add( (0,0) )
 		#addmodbox.Add( self.newmodbrs )
 		#addmodbox.Add( (0,0) )
-		naddmodbox.Add(addmodbox, 1, wxALIGN_CENTRE)
+		naddmodbox.Add(addmodbox, 1, wx.ALIGN_CENTRE)
 
-		ncurmodbox.Add(self.modlbox, 1, wxEXPAND)
+		ncurmodbox.Add(self.modlbox, 1, wx.EXPAND)
 
 		#all mod box
-		modbox = wxBoxSizer(wxVERTICAL) #HORIZONTAL)
-		modbox.Add( naddmodbox, 1, wxALL | wxEXPAND, border=5 )
+		modbox = wx.BoxSizer(wx.VERTICAL) #HORIZONTAL)
+		modbox.Add( naddmodbox, 1, wx.ALL | wx.EXPAND, border=5 )
 		modbox.Add( (500,1) )
-		modbox.Add( ncurmodbox, 3, wxALL | wxEXPAND, border=5 )
+		modbox.Add( ncurmodbox, 3, wx.ALL | wx.EXPAND, border=5 )
 
 		#buttons box
-		btnbox = wxBoxSizer(wxHORIZONTAL)
-		btnbox.Add(self.helpbtn, 1, wxALIGN_RIGHT|wxRIGHT, 10)
-		btnbox.Add(self.okbtn, 1, wxALIGN_RIGHT)
+		btnbox = wx.BoxSizer(wx.HORIZONTAL)
+		btnbox.Add(self.helpbtn, 1, wx.ALIGN_RIGHT|wx.RIGHT, 10)
+		btnbox.Add(self.okbtn, 1, wx.ALIGN_RIGHT)
 		#btnbox.Add((13,0) )
 		
 		#mainbox
-		mainbox.Add(noptionbox, 0, wxALL|wxEXPAND, border=5)
-		mainbox.Add(modbox, 1, wxALL | wxEXPAND, border=5)
-		mainbox.Add(btnbox, 0, wxALIGN_RIGHT | wxBOTTOM | wxRIGHT, border=20)
+		mainbox.Add(noptionbox, 0, wx.ALL|wx.EXPAND, border=5)
+		mainbox.Add(modbox, 1, wx.ALL | wx.EXPAND, border=5)
+		mainbox.Add(btnbox, 0, wx.ALIGN_RIGHT | wx.BOTTOM | wx.RIGHT, border=20)
 
 		panel.SetSizer(mainbox)
 		#panel.SetAutoLayout(True)
@@ -289,7 +289,7 @@ class PrefFrame(wx.Dialog):
 
 	def load(self):
 		for i in range(len(self.app.mods)-1, -1, -1):
-			item = wxListItem()
+			item = wx.ListItem()
 			type = self.app.mods[i].type
 			id = self.app.mods[i].id
 			name = self.app.mods[i].getname()
@@ -342,7 +342,7 @@ class PrefFrame(wx.Dialog):
 					args = wizard.getAnswers()
 					wizard.Done()
 			self.app.addMod(type, args)
-			item = wxListItem()
+			item = wx.ListItem()
 			id = self.app.mods[0].id
 			name = self.app.mods[0].getname()
 			item.SetText("%s: %s, %s" %(type, id, name) )
@@ -368,7 +368,7 @@ Wow Dir -- Unless you installed WoW in an odd place this should be correctly set
 		for t in self.app.getModTypes():
 			h = self.app.getModType(t).help()
 			text += "-------------------------------------\n" + t + ":" + h
-		wxInfo(self, text, "Help")
+		wx.Info(self, text, "Help")
 
 	def OnExit(self, event):
 		self.OnClose(event)
@@ -382,22 +382,22 @@ Wow Dir -- Unless you installed WoW in an odd place this should be correctly set
 
 	def OnClean(self, event):
 		choice = wxSure(self, "This will delete your Interface directory and delete all AddOns you have installed.  Are you sure you want to do this?")
-		if choice == wxID_YES:
+		if choice == wx.ID_YES:
 			self.app.fullclean()
 
-class LogFrame(wxFrame):
+class LogFrame(wx.Frame):
 	def __init__(self, app, parent, ID=-1, title="Log"):
-		wxFrame.__init__(self, parent, ID, title, size=(400,600))
+		wx.Frame.__init__(self, parent, ID, title, size=(400,600))
 		self.app = app
 		self.count = 0
-		okbtn = wxButton(self, wxID_OK)
+		okbtn = wx.Button(self, wx.ID_OK)
 
-		self.Bind(EVT_CLOSE, self.OnExit)
-		okbtn.Bind(EVT_BUTTON, self.OnExit)
-		self.text = wxTextCtrl(self, style=wxTE_MULTILINE)
-		mainbox = wxBoxSizer(wxVERTICAL)
-		mainbox.Add(self.text, 1, wxALL|wxEXPAND|wxGROW, border=5)
-		mainbox.Add(okbtn, 0, wxALL|wxALIGN_RIGHT, border=20)
+		self.Bind(wx.EVT_CLOSE, self.OnExit)
+		okbtn.Bind(wx.EVT_BUTTON, self.OnExit)
+		self.text = wx.TextCtrl(self, style=wx.TE_MULTILINE)
+		mainbox = wx.BoxSizer(wx.VERTICAL)
+		mainbox.Add(self.text, 1, wx.ALL|wx.EXPAND|wx.GROW, border=5)
+		mainbox.Add(okbtn, 0, wx.ALL|wx.ALIGN_RIGHT, border=20)
 
 		self.text.SetEditable(False)
 		self.SetAutoLayout(True)
@@ -413,7 +413,7 @@ class LogFrame(wxFrame):
 		self.Hide()
 
 
-class AboutBox(wxDialog):
+class AboutBox(wx.Dialog):
 	text= """
 Author: %s
 Updater GUI Revision: %s
@@ -421,42 +421,44 @@ Copyright: %s
 License: %s
 
 Icon By: Anthony Piraino (from the Litho Extras Vol. 1)
+Unzip by C. Spieler http://www.info-zip.org/ 
+Unrar by  Alexander L. Roshal http://www.rarlab.com/rar_add.htm 
 """ % (__author__, __version__, __copyright__, __license__)
 	def __init__(self, parent, icon):
 		wx.Dialog.__init__(self, parent, -1, "About WoW Addon Updater", size=(400, -1) )
-		box = wxBoxSizer(wxVERTICAL)
+		box = wx.BoxSizer(wx.VERTICAL)
 		box.Add((1,10))
-		title = wxStaticText(self, label="WoW Addon Updater")
+		title = wx.StaticText(self, label="WoW Addon Updater")
 
 		font = title.GetFont()
 		font.SetPointSize( font.GetPointSize()+4 )
 		font.SetWeight(wx.FONTWEIGHT_BOLD)
 		title.SetFont(font)
-		box.Add( title, 0, wxALIGN_CENTER )
+		box.Add( title, 0, wx.ALIGN_CENTER )
 		try:	
 			if icon != None:
 				print icon
 				self.SetIcon(icon)
-				bmap = wxBitmapFromIcon(icon)
+				bmap = wx.BitmapFromIcon(icon)
 				print bmap
-				box.Add(wxStaticBitmap(self, bitmap=bmap), 0, wxALIGN_CENTER)
+				box.Add(wx.StaticBitmap(self, bitmap=bmap), 0, wx.ALIGN_CENTER)
 		finally:
 			pass
 
-		box.Add( wxStaticText(self, size=(380,-1), label=self.text), 1,wxALIGN_CENTER )
-		box.Add( wx.Button(self, wx.ID_OK, "Okay"), 0, wxALIGN_CENTER)
+		box.Add( wx.StaticText(self, size=(380,-1), label=self.text), 1,wx.ALIGN_CENTER )
+		box.Add( wx.Button(self, wx.ID_OK, "Okay"), 0, wx.ALIGN_CENTER)
 		box.Add((1,10))
 		self.SetSizer(box)
 
 
 def wxSure(parent, message, caption = 'Are you sure?'): 
-	dlg = wxMessageDialog(parent, message, caption, wxYES_NO | wxNO_DEFAULT | wxICON_HAND | wxSTAY_ON_TOP)
+	dlg = wx.MessageDialog(parent, message, caption, wx.YES_NO | wx.NO_DEFAULT | wx.ICON_HAND | wx.STAY_ON_TOP)
 	ret = dlg.ShowModal()
 	dlg.Destroy() 
 	return ret
 
 def wxInfo(parent, message, caption = 'Insert program title'): 
-    dlg = wxMessageDialog(parent, message, caption, wxOK | wxICON_INFORMATION) 
+    dlg = wx.MessageDialog(parent, message, caption, wx.OK | wx.ICON_INFORMATION) 
     dlg.ShowModal() 
     dlg.Destroy() 
 
