@@ -312,7 +312,7 @@ class Updater:
 						m.update()
 					 	i+=1; self.gauge(i, total)
 					except wowaddon.DownloadError, e:
-						self.error("Error on checking version for %s: %s %s." % (name, e.__class__, e) )
+						self.error("Error on updating version for %s: %s %s." % (name, e.__class__, e) )
 						continue
 
 					try:

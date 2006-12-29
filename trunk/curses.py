@@ -56,24 +56,25 @@ class Plugin(wowaddon.Plugin):
 		if bestid < 1: 
 			self.out("Failed to parse download URL for mod CURSE:%s:%s" % (self.id, self.dname) )
 			raise wowaddon.ParseError
-	
+		self.log("Bestlink: %s" %bestlink)
 		dlpagelink = "http://wow.curse-gaming.com" + bestlink
 
 		try:
 			dlpage = urllib.urlopen(dlpagelink).read()
 		except IOError:
 			raise wowaddon.DownloadError("Couldn't get dlpage")
-		
-		matches = re.search("(?ism)<li class=\"auto\"><a\s+href=\"(.*?)\">" , dlpage)
+		dlpage = re.search("(?is)<ul\s+id=\"mirrorlist\">(.*?)</ul>", dlpage).group(1)
+		matches = re.search("(?ism)<li class=\"(auto|row.?)\"><a\s+href=\"([^\"]+?)\">" , dlpage)
 
 		if matches == None:
 			raise wowaddon.ParseError
 
-		link = matches.group(1)
+		link = matches.group(2)
 		self.name = wowaddon.cleanuphtml(name) + " " + wowaddon.cleanuphtml(bestvername)
 		self.link = link
 		self.newversion = bestid
 		self.zipfilename = re.sub('[^-_a-zA-Z0-9]', '', self.name.strip().replace(' ', '_')) + ".zip"
+		self.log("Curses %s,%s,%s" %(self.link, self.newversion, self.zipfilename))
 		return self.link, self.newversion, self.zipfilename
 
 	def postcopy(self):
@@ -140,7 +141,7 @@ wowaddon.addModType("Curse Gaming", Plugin)
 
 
 if __name__ == "__main__":
-	list = Plugin.search('damagemeter')
+	list = Plugin.search('smurfy')
 	print list
 	p = Plugin(None, [ list[0][0] ] )
 	print p.getinfo()
