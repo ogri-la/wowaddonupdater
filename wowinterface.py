@@ -76,13 +76,15 @@ class Plugin(wowaddon.Plugin):
 				posta['action'] = 'showresults'
 				posta['page'] = page
 				posta['searchid'] = searchid
+				posta['sb'] = ''
+				posta['so'] = ''
 
 			post = urllib.urlencode(posta)
 			try:
 				data = urllib.urlopen("http://www.wowinterface.com/downloads/search.php", post).read()
 			except IOError:
 				raise wowaddon.DownloadError
-	
+			print data
 			match = comped.search(data, 0)
 
 			while match != None:
