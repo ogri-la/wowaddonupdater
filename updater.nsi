@@ -33,6 +33,7 @@ Section "Install"
   File "dist\unrar.exe" 
   File "dist\updater.ico" 
   File "dist\MSVCR71.dll" 
+  Delete "$INSTDIR\updates\*.*"
  
   ; Write the uninstall keys for Windows 
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\WoWAddOnUpdater" "DisplayName" "WoW AddOn Updater Program (remove only)" 

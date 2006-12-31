@@ -329,6 +329,8 @@ class PrefFrame(wx.Dialog):
 		try:
 			label = self.newmodtype.GetStringSelection()
 			i = ""
+			if label == "":
+				return
 			type = self.app.getModType(label)
 			argdesc = type.argdesc() 
 			args = []
@@ -349,6 +351,8 @@ class PrefFrame(wx.Dialog):
 			self.modsctrl.InsertItem(item)
 		except ValueError:
 			pass
+		except AttributeError,e:
+			self.log("Probably nothing but got: %s." %(str(e)))
 
 	def OnBrowse(self, event):
 		self.wowdirdia.SetPath(self.wowdirctrl.GetValue() )
