@@ -10,6 +10,7 @@ __copyright__ = "Copyright 2005,2006 Patrick Butler"
 __license__   = "GPL Version 2"
 
 import sys
+import os
 
 import xml
 from xml.dom.minidom import parse, parseString
@@ -25,6 +26,9 @@ def readFileNode(file):
 				ret[node.nodeName] = node.childNodes[0].nodeValue
 				if node.nodeName == 'version':
 					ret[node.nodeName] = float( ret[node.nodeName] )
+				if node.nodeName == 'dir':
+					ret['dir'] = ret['dir'].replace("/", os.sep)
+					ret['dir'] = ret['dir'].replace("\\", os.sep)
 	return ret
 
 
@@ -41,8 +45,8 @@ def walkNodes(doc):
 			key = data['name']
 			if key == None:
 				continue
-			if data['dir'] != None:
-				key = data['dir'] + "/" + key
+			if data['dir'] != None and data['dir'] != '':
+				key = os.path.join(data['dir'], key)
 			ret[key] = data
 	return ret
 

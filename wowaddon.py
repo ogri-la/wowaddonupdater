@@ -77,6 +77,7 @@ class Plugin:
 
 		self.infiles = []
 		self.outfiles = []
+		self.filehashes = {}
 
 		self.tmpdir = ""
 		self.curversion = None
@@ -125,6 +126,22 @@ class Plugin:
 			self.out( str(newver) + " != " + str(self.getcurver()) )
 		return newver == self.getcurver() #and os.path.exists(self.zipfile)
 
+	def verify(self):
+		wowdir = self.getoption("wowdir")
+		for f in self.outfiles:
+			file = os.path.join(wowdir, f)
+			if not os.path.exists(file):
+				self.log(f + " does not exist")
+				return False
+			if f not in self.filehashes:
+				self.log("hashes do not exist")
+				return False
+			if self.filehashes[f] != hashfile(file):
+				self.log(f + " does not match hash")
+				return False
+		return True		
+		
+
 	def cleanzip(self):
 		try:
 			if os.path.exists(self.zipfile):
@@ -141,12 +158,11 @@ class Plugin:
 				return 1
 			if(a.count(os.sep) > b.count(os.sep)):
 				return -1
-			return 0;
+			return 0
 		
 		#I want to delete files specifically not wildcard them
 		#this makes it easier
 		self.outfiles.sort(cmpdir)
-
 		try:
 			if os.path.isdir(self.tmpdir):
 				shutil.rmtree(self.tmpdir, True)
@@ -158,7 +174,7 @@ class Plugin:
 			#paranoid check
 			for f in self.outfiles[:]:
 				if  f == '':
-					self.outfiles.remove(f);
+					self.outfiles.remove(f)
 
 			#files
 			for f in self.outfiles[:]:
@@ -174,22 +190,29 @@ class Plugin:
 				if os.path.exists(dir) and os.path.isdir(dir):
 					try:
 						os.rmdir(dir)
-					except os.error:
-						self.log("Didn't delete dir:"+dir)
+						print dir
+					except os.error, e:
+						pass
+						#self.log("Didn't delete dir:"+dir+ str(e) )
 
 			#directories
 			for f in self.outfiles[:]:
-				dir = os.path.join(wowdir, f);
-				print dir
-				if (os.path.exists(dir) and os.path.isdir(dir)):
-					os.rmdir(dir);
-				if not os.path.exists(dir):
-					self.outfiles.remove(f);
+				dir = os.path.join(wowdir, f)
+				#print dir
+				try:
+					if (os.path.exists(dir) and os.path.isdir(dir)):
+						os.rmdir(dir)
+						print dir
+					if not os.path.exists(dir):
+						self.outfiles.remove(f)
+				except os.error, e:
+					self.log("Didn't delete dir:"+dir+ str(e) )
 
-			#print self.outfiles;
 		except OSError, e:
 			#raise CleanError, e
 			pass
+
+		self.filehashes = {}
 
 	def update(self):
 		zipdir = self.getoption('zipdir')
@@ -198,8 +221,8 @@ class Plugin:
 			self.out("Downloading... %dk" % (blocks*bsize/1024), 1)
 
 		if self.link == "":
-			self.getinfo();
-		#print self.link;
+			self.getinfo()
+		#print self.link
 		name = self.id+".zip"
 		self.out("%s (%s)" % (self.link, name))
 		zipfile = os.path.join(zipdir, self.zipfilename)
@@ -210,7 +233,7 @@ class Plugin:
 		try:
 			urllib.urlretrieve(link, zipfile, dhook)
 		except IOError, e:
-			raise DownloadError, e;
+			raise DownloadError, e
 		self.zipfile = zipfile
 		self.out("Downloading... done")
 		return
@@ -276,8 +299,8 @@ class Plugin:
 
 			#create copy so removes doesnt break
 			#print self.outfiles[1:10] 
-			for f in self.outfiles[:] :
-				realfile = os.path.join(wowdir, f);
+			for f in self.outfiles[:]:
+				realfile = os.path.join(wowdir, f)
 				if ( (not os.path.exists(realfile)) or 
 				     f == '' or
 				     f.strip(os.sep).lower() == '' or 
@@ -287,7 +310,10 @@ class Plugin:
 					self.outfiles.remove(f)
 					if (not os.path.exists(realfile) ):
 						print "**************ERROR ", f, "NOT FOUND*********"
-			
+			for f in self.outfiles:
+				realfile = os.path.join(wowdir, f)
+				self.filehashes[f] = hashfile(realfile)
+
 			#print self.outfiles
 			self.postcopy()
 		except OSError, e:
@@ -468,8 +494,8 @@ def unzip( path, outpath ):
 			os.makedirs(os.path.dirname(outname))
 
 		# Write files to disk
-		temp = open(outname, "wb");  # create the file
-		data = archive.read(name);   # read the binary data
+		temp = open(outname, "wb")  # create the file
+		data = archive.read(name)  # read the binary data
 		temp.write(data)
 		temp.close()
 		
@@ -478,7 +504,15 @@ def unzip( path, outpath ):
 
 def hashfile(file):
 	f = open(file, "rb")
-	hash = md5.new( f.read() )
+	hash = md5.new()
+	try:
+		while True:
+			b = f.read(4096) 
+			if len(b) == 0:
+				break
+			hash.update(b)
+	except EOFError:
+		pass
 	f.close()
 	return hash.hexdigest()
 

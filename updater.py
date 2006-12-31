@@ -28,8 +28,8 @@ import wowaddon
 import aceaddons
 import cosmos
 import curses
-import ctmod 
 import nurfedui
+import ctmod 
 import uiwownet
 import wowinterface
 import local
@@ -43,7 +43,7 @@ class UnzipError(Exception): pass
 class CopyError(Exception): pass
 class UpdaterError(Exception): pass
 
-schemaver = 3
+schemaver = 4
 
 class Updater:
 	def __init__(self):
@@ -52,6 +52,7 @@ class Updater:
 					'release'   : '-1',
 					'version'   : schemaver,
 					'zipdir'    : 'zips',
+					'verify'    : 'True'
 					#'ifacedir'  : 'Interface',
 				}
 		self.config = {}
@@ -297,7 +298,10 @@ class Updater:
 				name = m.name
 			self.out2("Checking %s ..." % name)
 			try:
-				if not m.isuptodate():
+				notok = True
+				if self.getoption('verify') == True:
+					notok = m.verify()
+				if not m.isuptodate() or not notok:
 					try:
 						i+=1; self.gauge(i, total)
 						self.out2("Cleaning up zipfile for %s ..." % name)
@@ -375,6 +379,9 @@ class Updater:
 			pver += 1
 		if pver == 2:
 			self.mods = []
+			pver += 1
+		if pver == 3:
+			self.setoption("verify",  True)
 			pver += 1
 
 		self.setoption("version", pver)	
