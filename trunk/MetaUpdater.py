@@ -101,23 +101,18 @@ def checkUpdates():
 		for f in files.keys():
 			i += 1
 			xmlhash = files[f]['md5']
-			dir = files[f]['dir']
-			ff = ''
-			if dir == None or dir == '':
-				ff = f
-			else:
-				ff = os.path.join(dir, f)
-				if not os.path.isdir( os.path.join(updatesDir, ".tmp", dir) ):
-					os.makedirs( os.path.join(updatesDir, ".tmp", dir) )
-				if not os.path.isdir( os.path.join(updatesDir, dir) ): 
-					os.makedirs( os.path.join(updatesDir, dir) )
+			dir = os.path.dirname(f)
+			if not os.path.isdir( os.path.join(updatesDir, ".tmp", dir) ):
+				os.makedirs( os.path.join(updatesDir, ".tmp", dir) )
+			if not os.path.isdir( os.path.join(updatesDir, dir) ): 
+				os.makedirs( os.path.join(updatesDir, dir) )
 
-			tmpfile = os.path.join(updatesDir, ".tmp", ff)
-			updatesFile = os.path.join(updatesDir, ff) 
+			tmpfile = os.path.join(updatesDir, ".tmp", f)
+			updatesFile = os.path.join(updatesDir, f) 
 
 			curmd5 = md5FromFile( updatesFile ) 
 			if curmd5 == None:
-				curmd5 = md5FromZip(ff, theZip)
+				curmd5 = md5FromZip(f, theZip)
 			if xmlhash != curmd5:
 				if not updating:
 					updating = True

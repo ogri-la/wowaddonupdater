@@ -83,6 +83,7 @@ class Plugin(wowaddon.Plugin):
 		wowdir = self.updater.getoption("wowdir")
 		self.connect()
 		rel = self.getReleases()
+		print rel
 		self.out("release: %s" % rel[self.distro])
 		self.newfl = self.getFileList(self.distro)
 		newfiles = []
@@ -106,8 +107,10 @@ class Plugin(wowaddon.Plugin):
 		self.newfl = []
 		self.outfiles = [] 
 		for f in self.curfl.keys():
-			self.outfiles.append( os.path.join(wowdir, f) )
-
+			file = os.path.join(wowdir, f) 
+			self.outfiles.append( f )
+			self.filehashes[f] = hashfile(f)
+			
 	def cleanzip(self):
 		pass
 
@@ -152,7 +155,6 @@ class Plugin(wowaddon.Plugin):
 					'csize' : int(csize) }
 		return files
 	
-	
 	def getFiles(self, files, flist):
 		self.connect()
 		wowdir = self.getoption("wowdir")
@@ -174,7 +176,7 @@ class Plugin(wowaddon.Plugin):
 
 		for file in files:
 			self.out("Cosmos: getting file: " +file) 
-			infile = os.path.join(self.tmpdir, file);
+			infile = os.path.join(self.tmpdir, file)
 			dir = os.path.dirname(infile)
 			if not os.path.exists( dir ):
 				os.makedirs( dir )
@@ -201,7 +203,6 @@ class Plugin(wowaddon.Plugin):
 		odict = wowaddon.Plugin.__getstate__(self)
 		odict['socket'] = None  
 		return odict
-
 
 	def help():
 		return """

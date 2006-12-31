@@ -213,6 +213,8 @@ class PrefFrame(wx.Dialog):
 		
 		self.helpbtn = wx.Button(panel, -1, "Help")
 		self.okbtn = wx.Button(panel, -1, "OK")
+		
+		self.verifychk = wx.CheckBox(panel, -1, "Verify Files on update (this may overwrite local changes)")
 
 		self.cleanbtn = wx.Button(panel, -1, "Cleanup Files")
 
@@ -233,6 +235,7 @@ class PrefFrame(wx.Dialog):
 		optionbox = wx.FlexGridSizer(cols=2, vgap=8, hgap=8)
 		noptionbox.Add(optionbox, 1, wx.GROW)
 		noptionbox.Add(self.cleanbtn, 1, wx.ALIGN_CENTER|wx.ALL,5)
+		noptionbox.Add(self.verifychk, 1, wx.ALIGN_CENTER|wx.ALL,5)
 
 		optionbox.AddGrowableCol(1, 1)
 		optionbox.SetFlexibleDirection(wx.HORIZONTAL)
@@ -295,11 +298,13 @@ class PrefFrame(wx.Dialog):
 			name = self.app.mods[i].getname()
 			item.SetText("%s: %s, %s" %(type, id, name) )
 			self.modsctrl.InsertItem(item)
-
+		
+		self.verifychk.SetValue( self.app.getoption('verify') )
 		self.wowdirctrl.SetValue( self.app.getoption('wowdir') )
 		return
 
 	def save(self):
+		self.app.setoption('verify', self.verifychk.GetValue() )
  		self.app.setoption('wowdir', self.wowdirctrl.GetValue() )
 		self.app.saveConfig()
 
