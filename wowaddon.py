@@ -128,6 +128,9 @@ class Plugin:
 
 	def verify(self):
 		wowdir = self.getoption("wowdir")
+		if not hasattr(self, 'filehashes'):
+			self.filehashes = {}
+
 		for f in self.outfiles:
 			file = os.path.join(wowdir, f)
 			if not os.path.exists(file):
